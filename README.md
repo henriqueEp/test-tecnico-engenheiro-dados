@@ -87,7 +87,7 @@ infra/
 └── docker-compose.yml
 .github/
 ├── copilot-instructions.md   # contexto automático para GitHub Copilot
-├── prompts/                  # prompts reutilizáveis (/code-review, /write-tests, /check-patterns)
+├── prompts/                  # prompts reutilizáveis (/code-review, /write-tests, /check-patterns, /debug-cicd)
 ├── agents/                   # agentes especializados (refactor, docs-writer)
 ├── skills/                   # skills on-demand (test-data-factory)
 └── workflows/ci.yml          # CI/CD (lint → unit → integration → build/push → run)
@@ -135,10 +135,10 @@ lint ──► unit-tests ──► integration-tests ──► build-and-push �
 | **Lint** | PRs e push | `ruff check app/` — verifica erros, imports não usados e ordenação de imports |
 | **Unit Tests** | Após lint | Roda `pytest -m unit` dentro do container Docker |
 | **Integration Tests** | Após unit | Roda `pytest -m integration` com dados reais (`data/`) montados |
-| **Build & Push** | Push em `main` | Builda a imagem e faz push para **GitHub Container Registry** (`ghcr.io`) |
-| **Run Pipeline** | Push em `main` | Executa `app/main.py` — simula o disparo do job em produção |
+| **Build & Push** | Push em `main` + aprovação | Aguarda gate `production` → builda e faz push para **GitHub Container Registry** (`ghcr.io`) |
+| **Run Pipeline** | Após build + aprovação | Executa `app/main.py` — simula o disparo do job em produção |
 
-> Os estágios 4 e 5 só rodam em push direto para `main` (não em PRs), simulando o fluxo de entrega contínua: código revisado → imagem publicada → job executado.
+> Os estágios 4 e 5 só rodam em push direto para `main` e exigem aprovação manual via **Environment `production`** (Settings → Environments → Required reviewers). Sem a configuração do environment, os jobs disparam automaticamente.
 
 ---
 
@@ -201,6 +201,13 @@ Agente especializado em gerar documentação em `docs/`. Lê `app/src/`, `app/ma
 
 Skill on-demand para gerar dados sintéticos em testes unitários PySpark. Empacota: checklist de edge cases por tipo de coluna, templates dos schemas do projeto, regras de `DecimalType`/`LongType` e padrões de `assertDataFrameEqual`. Evita repetição de boilerplate ao criar novos testes em `app/tests/`.
 
+### Prompt `/debug-cicd` — diagnóstico de falhas na esteira
+
+**Arquivo**: `.github/prompts/debug-cicd.prompt.md`  
+**Invocação**: digite `/debug-cicd` no chat e cole o log de erro do GitHub Actions como argumento
+
+Prompt especializado em diagnosticar falhas no pipeline CI/CD. Lê automaticamente o `ci.yml` e o `docker-compose.yml` antes de analisar e retorna: causa raiz, estágio afetado, correção exata e como verificar o fix. Inclui base de conhecimento das armadilhas conhecidas do projeto (`docker-compose` vs `docker compose`, `No module named pyspark`, `Python worker failed to connect`, etc.).
+
 ### Resumo dos primitivos
 
 | Primitivo | Arquivo | Como invocar |
@@ -209,6 +216,7 @@ Skill on-demand para gerar dados sintéticos em testes unitários PySpark. Empac
 | Prompt `/code-review` | `.github/prompts/code-review.prompt.md` | `/code-review` no chat |
 | Prompt `/write-tests` | `.github/prompts/write-tests.prompt.md` | `/write-tests` no chat |
 | Prompt `/check-patterns` | `.github/prompts/check-patterns.prompt.md` | `/check-patterns` no chat |
+| Prompt `/debug-cicd` | `.github/prompts/debug-cicd.prompt.md` | `/debug-cicd` no chat |
 | Agent `refactor` | `.github/agents/refactor.agent.md` | Seletor de agentes → **refactor** |
 | Agent `docs-writer` | `.github/agents/docs-writer.agent.md` | Seletor de agentes → **docs-writer** |
 | Skill `test-data-factory` | `.github/skills/test-data-factory/SKILL.md` | `#test-data-factory` no chat |
