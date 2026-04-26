@@ -1,0 +1,53 @@
+services:
+  jupyter:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    ports:
+      - "8888:8888"
+    volumes:
+      - ../data:/home/jovyan/data
+      - ../solution.ipynb:/home/jovyan/solution.ipynb
+      - ../app:/home/jovyan/app
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    command: start-notebook.py --ServerApp.token='' --ServerApp.password=''
+
+  app:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    volumes:
+      - ../data:/home/jovyan/data
+      - ../app:/home/jovyan/app
+    working_dir: /home/jovyan
+    command: /opt/conda/bin/python -m app.main
+    profiles:
+      - app
+
+  test-unit:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    volumes:
+      - ../app:/home/jovyan/app
+      - ../pytest.ini:/home/jovyan/pytest.ini
+    working_dir: /home/jovyan
+    command: /opt/conda/bin/python -m pytest -m unit --tb=short -q
+    profiles:
+      - test-unit
+
+  test-integration:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    volumes:
+      - ../data:/home/jovyan/data
+      - ../app:/home/jovyan/app
+      - ../tests:/home/jovyan/tests
+      - ../pytest.ini:/home/jovyan/pytest.ini
+    working_dir: /home/jovyan
+    command: /opt/conda/bin/python -m pytest -m integration --tb=short -q
+    profiles:
+      - test-integration
+
