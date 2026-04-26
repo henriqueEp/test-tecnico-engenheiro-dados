@@ -133,8 +133,8 @@ lint ──► unit-tests ──► integration-tests ──► build-and-push �
 | Estágio | Trigger | O que faz |
 |---------|---------|-----------|
 | **Lint** | PRs e push | `ruff check app/` — verifica erros, imports não usados e ordenação de imports |
-| **Unit Tests** | Após lint | Roda `pytest -m unit` dentro do container Docker |
-| **Integration Tests** | Após unit | Roda `pytest -m integration` com dados reais (`data/`) montados |
+| **Unit Tests** | Após lint (paralelo) | Roda `pytest -m unit` dentro do container Docker |
+| **Integration Tests** | Após lint (paralelo) | Roda `pytest -m integration` com dados reais (`data/`) montados |
 | **Build & Push** | Push em `main` + aprovação | Aguarda gate `production` → builda e faz push para **GitHub Container Registry** (`ghcr.io`) |
 | **Run Pipeline** | Após build + aprovação | Executa `app/main.py` — simula o disparo do job em produção |
 
