@@ -1,5 +1,11 @@
 # Teste Técnico — Engenheiro de Dados
 
+
+![CI](https://github.com/henriqueEp/test-tecnico-engenheiro-dados/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.11-blue)
+![PySpark](https://img.shields.io/badge/pyspark-3.5.0-orange)
+![Docker](https://img.shields.io/badge/docker-compose%20v2-2496ED)
+
 Solução do teste técnico para análise de pedidos e clientes de e-commerce com PySpark 3.5.
 
 Duas abordagens disponíveis: **notebook** (foco em leitura e apresentação) e **projeto Python** (estrutura pronta para esteira de CI/CD).
