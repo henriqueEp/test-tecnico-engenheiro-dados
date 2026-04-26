@@ -90,7 +90,7 @@ infra/
 ├── prompts/                  # prompts reutilizáveis (/code-review, /write-tests, /check-patterns)
 ├── agents/                   # agentes especializados (refactor, docs-writer)
 ├── skills/                   # skills on-demand (test-data-factory)
-└── workflows/ci.yml          # CI/CD (unit → integration)
+└── workflows/ci.yml          # CI/CD (lint → unit → integration → build/push → run)
 docs/
 ├── technical.md              # arquitetura, schemas, assinaturas de funções, pipeline
 └── business.md               # DF1–DF5 em linguagem de negócio
@@ -119,6 +119,26 @@ docker-compose -f infra/docker-compose.yml --profile test-unit run --rm test-uni
 # testes de integração (com dados reais)
 docker-compose -f infra/docker-compose.yml --profile test-integration run --rm test-integration
 ```
+
+---
+
+## CI/CD
+
+O workflow `.github/workflows/ci.yml` simula uma esteira de dados completa com 5 estágios em sequência:
+
+```
+lint ──► unit-tests ──► integration-tests ──► build-and-push ──► run-pipeline
+```
+
+| Estágio | Trigger | O que faz |
+|---------|---------|-----------|
+| **Lint** | PRs e push | `ruff check app/` — verifica erros, imports não usados e ordenação de imports |
+| **Unit Tests** | Após lint | Roda `pytest -m unit` dentro do container Docker |
+| **Integration Tests** | Após unit | Roda `pytest -m integration` com dados reais (`data/`) montados |
+| **Build & Push** | Push em `main` | Builda a imagem e faz push para **GitHub Container Registry** (`ghcr.io`) |
+| **Run Pipeline** | Push em `main` | Executa `app/main.py` — simula o disparo do job em produção |
+
+> Os estágios 4 e 5 só rodam em push direto para `main` (não em PRs), simulando o fluxo de entrega contínua: código revisado → imagem publicada → job executado.
 
 ---
 
