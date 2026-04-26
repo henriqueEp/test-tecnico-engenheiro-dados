@@ -14,10 +14,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build test-unit image
-        run: docker-compose -f infra/docker-compose.yml --profile test-unit build test-unit
+        run: docker compose -f infra/docker-compose.yml --profile test-unit build test-unit
 
       - name: Run unit tests
-        run: docker-compose -f infra/docker-compose.yml --profile test-unit run --rm test-unit
+        run: docker compose -f infra/docker-compose.yml --profile test-unit run --rm test-unit
 
   integration-tests:
     name: Integration Tests
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build test-integration image
-        run: docker-compose -f infra/docker-compose.yml --profile test-integration build test-integration
+        run: docker compose -f infra/docker-compose.yml --profile test-integration build test-integration
 
       - name: Run integration tests
-        run: docker-compose -f infra/docker-compose.yml --profile test-integration run --rm test-integration
+        run: docker compose -f infra/docker-compose.yml --profile test-integration run --rm test-integration
