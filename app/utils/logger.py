@@ -7,4 +7,6 @@ def get_logger(name: str = "pipeline") -> logging.Logger:
         format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
         datefmt="%H:%M:%S",
     )
-    return logging.getLogger(name)
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    return logger

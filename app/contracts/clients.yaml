@@ -1,0 +1,28 @@
+apiVersion: v3.0.0
+kind: DataContract
+id: urn:datacontract:itau:clients:v1
+name: clients
+version: "1.0.0"
+status: active
+description: >
+  Cadastro de clientes — fonte de verdade de identificação.
+  Produzido pelo sistema de CRM e consumido pelo pipeline de pedidos.
+
+schema:
+  - name: clients
+    description: Tabela de clientes
+    columns:
+      - name: id
+        logicalType: long
+        isNullable: false
+        isPrimaryKey: true
+        description: Identificador único do cliente (surrogate key)
+      - name: name
+        logicalType: string
+        isNullable: true
+        description: Nome completo do cliente
+
+quality:
+  - column: id
+    rule: not_null
+    description: id não pode ser nulo — chave primária obrigatória

@@ -1,0 +1,38 @@
+apiVersion: v3.0.0
+kind: DataContract
+id: urn:datacontract:itau:pedidos:v1
+name: pedidos
+version: "1.0.0"
+status: active
+description: >
+  Pedidos realizados pelos clientes.
+  Pode conter registros inválidos (valores negativos, nulos, client_id
+  inexistente) — tratados pela camada de Data Quality antes da agregação.
+
+schema:
+  - name: pedidos
+    description: Tabela de pedidos
+    columns:
+      - name: id
+        logicalType: long
+        isNullable: false
+        isPrimaryKey: true
+        description: Identificador único do pedido
+      - name: client_id
+        logicalType: long
+        isNullable: true
+        description: Referência ao cliente (FK → clients.id)
+      - name: value
+        logicalType: "decimal(5,2)"
+        isNullable: true
+        description: Valor monetário do pedido em BRL
+
+quality:
+  - column: id
+    rule: not_null
+    description: id não pode ser nulo — chave primária obrigatória
+  - column: value
+    rule: positive
+    description: >
+      Valores negativos são capturados pela camada de DQ (motivo: valor negativo).
+      Alertas aqui servem para rastrear volume de inconsistências na fonte.

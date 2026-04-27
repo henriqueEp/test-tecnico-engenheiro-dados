@@ -1,10 +1,11 @@
 # Teste Técnico — Engenheiro de Dados
 
 
-![CI](https://github.com/henriqueEp/test-tecnico-engenheiro-dados/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/SEU_USUARIO_EXATO/test-tecnico-engenheiro-dados/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![PySpark](https://img.shields.io/badge/pyspark-3.5.0-orange)
 ![Docker](https://img.shields.io/badge/docker-compose%20v2-2496ED)
+![ODCS](https://img.shields.io/badge/data%20contract-ODCS%20v3-6a0dad)
 
 Solução do teste técnico para análise de pedidos e clientes de e-commerce com PySpark 3.5.
 
@@ -78,13 +79,18 @@ cd test-tecnico-engenheiro-dados
 ```
 app/
 ├── main.py               # entry point
+├── contracts/            # data contracts ODCS v3
+│   ├── clients.yaml      # schema + quality rules de clientes
+│   └── pedidos.yaml      # schema + quality rules de pedidos
 ├── src/                  # lógica de negócio (transformações PySpark puras)
 │   ├── data_quality.py   # DF1 — falhas_dq
 │   ├── aggregation.py    # DF2 — pedidos_por_cliente
 │   └── statistics.py     # DF3, DF4, DF5
 ├── utils/                # infraestrutura (sem lógica de negócio)
-│   ├── io.py             # leitura de dados
+│   ├── io.py             # leitura de dados + validação de contrato
+│   ├── contract.py       # engine WAP (schema hard / quality soft)
 │   ├── schemas.py        # StructType definitions
+│   ├── logger.py         # get_logger estruturado
 │   └── session.py        # SparkSession
 └── tests/                # testes unitários
 tests/                    # testes de integração (esteira)
@@ -145,6 +151,36 @@ lint ──► unit-tests ──► integration-tests ──► build-and-push �
 | **Run Pipeline** | Após build + aprovação | Executa `app/main.py` — simula o disparo do job em produção |
 
 > Os estágios 4 e 5 só rodam em push direto para `main` e exigem aprovação manual via **Environment `production`** (Settings → Environments → Required reviewers). Sem a configuração do environment, os jobs disparam automaticamente.
+
+---
+
+## Data Contracts (ODCS v3)
+
+Cada fonte de dados possui um contrato declarativo em `app/contracts/` seguindo o padrão [Open Data Contract Standard v3](https://bitol-io.github.io/open-data-contract-standard/).
+
+### Padrão WAP (Write → Audit → Publish)
+
+O contrato é validado dentro de `io.py` a cada leitura, antes de o DataFrame chegar ao pipeline:
+
+```
+Write   → spark.read.schema(...).json(...)   # lê a fonte
+Audit   → validate_contract(df, *.yaml)      # schema = hard | quality = warn
+Publish → return df                          # só publicado se schema OK
+```
+
+### Estratégia de violação
+
+| Tipo de violação | Reação | Motivo |
+|---|---|---|
+| Coluna ausente / tipo errado | `ValueError` — **interrompe pipeline** | Schema mudou na fonte; dado incompatível |
+| `not_null` / `positive` violados | `WARNING` no log — **pipeline continua** | Volume de sujeira esperado; `build_falhas_dq` já trata |
+
+### Contratos disponíveis
+
+| Contrato | Schema | Quality rules |
+|---|---|---|
+| [`app/contracts/clients.yaml`](app/contracts/clients.yaml) | `id: long (not null)`, `name: string` | `not_null` em `id` |
+| [`app/contracts/pedidos.yaml`](app/contracts/pedidos.yaml) | `id: long`, `client_id: long`, `value: decimal(5,2)` | `not_null` em `id`, `positive` em `value` |
 
 ---
 
