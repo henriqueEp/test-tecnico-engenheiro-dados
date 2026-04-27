@@ -64,13 +64,10 @@ def validate_contract(df: DataFrame, contract_path: str | Path) -> None:
                     f"encontrado={actual.dataType.simpleString()}"
                 )
 
-            expected_nullable = col_def.get("isNullable", True)
-            if actual.nullable != expected_nullable:
-                errors.append(
-                    f"nullability incorreta em '{col_name}': "
-                    f"esperado nullable={expected_nullable}, "
-                    f"encontrado nullable={actual.nullable}"
-                )
+            # Nullability não é verificada no schema: leitores JSON/CSV sempre
+            # retornam nullable=True independente do schema declarado.
+            # A intenção do contrato (isNullable: false) é validada pela
+            # quality rule `not_null`, que opera no nível dos dados.
 
     if errors:
         bullet = "\n  • ".join(errors)
