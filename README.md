@@ -1,7 +1,7 @@
 # Teste Técnico — Engenheiro de Dados
 
 
-![CI](https://github.com/SEU_USUARIO_EXATO/test-tecnico-engenheiro-dados/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/henriqueEp/test-tecnico-engenheiro-dados/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![PySpark](https://img.shields.io/badge/pyspark-3.5.0-orange)
 ![Docker](https://img.shields.io/badge/docker-compose%20v2-2496ED)
@@ -139,7 +139,8 @@ docker-compose -f infra/docker-compose.yml --profile test-integration run --rm t
 O workflow `.github/workflows/ci.yml` simula uma esteira de dados completa com 5 estágios em sequência:
 
 ```
-lint ──► unit-tests ──► integration-tests ──► build-and-push ──► run-pipeline
+lint ──► unit-tests ──────────────────────► build-and-push ──► run-pipeline
+     └──► integration-tests ──────────────►
 ```
 
 | Estágio | Trigger | O que faz |
